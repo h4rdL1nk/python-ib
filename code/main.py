@@ -4,12 +4,19 @@ import requests
 import csv
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
+from telegram import Bot
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters )
 
 
 def main():
-# Get environment variables
 
-    requiredEnv = [ 'IB_TOKEN','IB_FLEX_ID' ]
+    # Get environment variables
+
+    requiredEnv = [ 'TELEGRAM_BOT_TOKEN','IB_TOKEN','IB_FLEX_ID' ]
 
     for envVar in requiredEnv:
         if envVar not in os.environ:
@@ -19,11 +26,34 @@ def main():
     try:
         ibToken = os.environ['IB_TOKEN']
         ibFlexId = os.environ['IB_FLEX_ID']
+        telegramBotToken = os.environ['TELEGRAM_BOT_TOKEN']
     except Exception:
         print("Error getting environment variables")
         sys.exit()
 
-    getIBFlexQuery( ibToken, ibFlexId )
+    # Initialize telegram bot
+    bot_instance = Bot(token=telegramBotToken)
+    updater = Updater(bot=bot_instance)
+    dispatcher = updater.dispatcher
+    updater.start_polling()
+
+    start_handler = CommandHandler('getReport', getReport)
+    dispatcher.add_handler(start_handler)
+
+    #flexResult = getIBFlexQuery( ibToken, ibFlexId )
+    #flexTable = printCsvAsTable( flexResult )
+
+
+def getReport(bot, update):
+
+    flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], os.environ['IB_FLEX_ID'] )
+    flexCsv = csv.reader(flexResult.splitlines())
+
+    for line in flexCsv:
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=line
+        )
 
 
 def getIBFlexQuery( ibToken, ibFlexId ):
@@ -63,7 +93,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         except:
             pass
 
-        printCsvAsTable( flexReq.text )
+        return flexReq.text
 
     else:
         print("Error getting flex query result %d" % (flexReq.status_code))
@@ -87,7 +117,7 @@ def printCsvAsTable( csvString ):
 
         count = count + 1
 
-    print(flexTable)
+    return flexTable
 
 
 if __name__ == "__main__":
