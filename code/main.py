@@ -14,8 +14,7 @@ from telegram.ext import (
 
 reportDict =	{
   'DIVS_DAILY': {
-      'id':'377985',
-      'fields': ['symbol','exdate','paydate','cur','gross','tax','net']
+      'id':'377985'
   }
 }
 
@@ -57,19 +56,25 @@ def getReport(bot, update):
     flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
     flexCsv = csv.reader(flexResult.splitlines())
 
+    line_count = 0
+    fields = []
     for line in flexCsv:
         if len(line) > 0:
+            if line_count == 0:
+                for headerField in line:
+                    fields.append(headerField)
+            else:
+                count = 0
+                botMessage = ""
+                for field in fields:
+                    botMessage = botMessage + field + ": " + line[count] + " \n"
+                    count = count + 1
 
-            count = 0
-            botMessage = ""
-            for field in reportDict[reportName]['fields']:
-                botMessage = botMessage + field + ":" + line[count] + " "
-                count = count + 1
-
-            bot.send_message(
-                chat_id=update.message.chat_id,
-                text=botMessage
-            )
+                bot.send_message(
+                    chat_id=update.message.chat_id,
+                    text=botMessage
+                )
+        line_count = line_count + 1
 
 
 def getIBFlexQuery( ibToken, ibFlexId ):
