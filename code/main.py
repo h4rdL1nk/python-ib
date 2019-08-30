@@ -12,6 +12,13 @@ from telegram.ext import (
     Filters )
 
 
+reportDict =	{
+  'DIVS_DAILY': {
+      'id':'377985',
+      'fields': ['symbol','exdate','paydate','cur','gross','tax','net']
+  }
+}
+
 def main():
 
     # Get environment variables
@@ -46,14 +53,24 @@ def main():
 
 def getReport(bot, update):
 
-    flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], os.environ['IB_FLEX_ID'] )
+    reportName = "DIVS_DAILY"
+
+    flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
     flexCsv = csv.reader(flexResult.splitlines())
 
     for line in flexCsv:
-        bot.send_message(
-            chat_id=update.message.chat_id,
-            text=line
-        )
+        if len(line) > 0:
+
+            count = 0
+            botMessage = ""
+            for field in reportDict[reportName]['fields']:
+                botMessage = botMessage + field + ":" + line[count] + " "
+                count = count + 1
+
+            bot.send_message(
+                chat_id=update.message.chat_id,
+                text=botMessage
+            )
 
 
 def getIBFlexQuery( ibToken, ibFlexId ):
