@@ -6,59 +6,73 @@ import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 
 
+def main():
 # Get environment variables
 
-requiredEnv = [ 'IB_TOKEN','IB_FLEX_ID' ]
+    requiredEnv = [ 'IB_TOKEN','IB_FLEX_ID' ]
 
-for envVar in requiredEnv:
-    if envVar not in os.environ:
-        print("Required environment variable not found %s" % (envVar))
+    for envVar in requiredEnv:
+        if envVar not in os.environ:
+            print("Required environment variable not found %s" % (envVar))
+            sys.exit()
+
+    try:
+        ibToken = os.environ['IB_TOKEN']
+        ibFlexId = os.environ['IB_FLEX_ID']
+    except Exception:
+        print("Error getting environment variables")
         sys.exit()
 
-try:
-    ibToken = os.environ['IB_TOKEN']
-    ibFlexId = os.environ['IB_FLEX_ID']
-except Exception:
-    print("Error getting environment variables")
-    sys.exit()
+    getIBFlexQuery( ibToken, ibFlexId )
 
 
-# Get IB API info
+def getIBFlexQuery( ibToken, ibFlexId ):
 
-print("Obtaining report reference code with token %s and query ID %s" % (ibToken,ibFlexId))
+    # Get IB API info
 
-referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
-referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
+    print("Obtaining report reference code with token %s and query ID %s" % (ibToken,ibFlexId))
 
-if referenceReq.status_code == 200:
-    referenceTree = ET.fromstring(referenceReq.text)
-    referenceCode = referenceTree.findtext('ReferenceCode')
-    if referenceTree.findtext('Status') != "Success":
-      print("Got [%s] result from request [%s]: %s" % (referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage')))
-      sys.exit()
-    else:
-      print("Got reference code %s" % (referenceCode))
-else:
-    print("Error getting reference code %d" % (referenceReq.status_code))
-    sys.exit()
+    referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
+    referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
 
-
-# Get IB FlexQuery result
-
-flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
-flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
-
-if flexReq.status_code == 200:
-    # Check if response has XML format
-    try:
-        flexTree = ET.fromstring(flexReq.text)
+    if referenceReq.status_code == 200:
+        referenceTree = ET.fromstring(referenceReq.text)
+        referenceCode = referenceTree.findtext('ReferenceCode')
         if referenceTree.findtext('Status') != "Success":
-            print("Got [%s] result from request [%s]: %s" % (flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage')))
+            print("Got [%s] result from request [%s]: %s" % (referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage')))
             sys.exit()
-    except:
-        pass
+        else:
+            print("Got reference code %s" % (referenceCode))
+    else:
+        print("Error getting reference code %d" % (referenceReq.status_code))
+        sys.exit()
 
-    flexCsv = csv.reader(flexReq.text.splitlines())
+
+    # Get IB FlexQuery result
+
+    flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
+    flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
+
+    if flexReq.status_code == 200:
+        # Check if response has XML format
+        try:
+            flexTree = ET.fromstring(flexReq.text)
+            if referenceTree.findtext('Status') != "Success":
+                print("Got [%s] result from request [%s]: %s" % (flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage')))
+                sys.exit()
+        except:
+            pass
+
+        printCsvAsTable( flexReq.text )
+
+    else:
+        print("Error getting flex query result %d" % (flexReq.status_code))
+        sys.exit()
+
+
+def printCsvAsTable( csvString ):
+
+    flexCsv = csv.reader(csvString.splitlines())
 
     flexTable = PrettyTable()
     
@@ -75,6 +89,6 @@ if flexReq.status_code == 200:
 
     print(flexTable)
 
-else:
-    print("Error getting flex query result %d" % (flexReq.status_code))
-    sys.exit()
+
+if __name__ == "__main__":
+    main()
