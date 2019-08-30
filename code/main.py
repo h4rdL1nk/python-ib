@@ -23,7 +23,7 @@ def main():
 
     # Get environment variables
 
-    requiredEnv = [ 'TELEGRAM_BOT_TOKEN','IB_TOKEN','IB_FLEX_ID' ]
+    requiredEnv = [ 'TELEGRAM_BOT_TOKEN','IB_TOKEN' ]
 
     for envVar in requiredEnv:
         if envVar not in os.environ:
@@ -32,7 +32,6 @@ def main():
 
     try:
         ibToken = os.environ['IB_TOKEN']
-        ibFlexId = os.environ['IB_FLEX_ID']
         telegramBotToken = os.environ['TELEGRAM_BOT_TOKEN']
     except Exception:
         print("Error getting environment variables")
