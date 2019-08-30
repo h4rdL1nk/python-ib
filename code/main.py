@@ -3,6 +3,7 @@ import sys
 import requests
 import csv
 import xml.etree.ElementTree as ET
+from prettytable import PrettyTable
 
 
 # Get environment variables
@@ -48,10 +49,32 @@ flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
 flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
 
 if flexReq.status_code == 200:
-    flexCsv = csv.reader(flexReq.text.splitlines()) 
+    # Check if response has XML format
+    try:
+        flexTree = ET.fromstring(flexReq.text)
+        if referenceTree.findtext('Status') != "Success":
+            print("Got [%s] result from request [%s]: %s" % (flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage')))
+            sys.exit()
+    except:
+        pass
+
+    flexCsv = csv.reader(flexReq.text.splitlines())
+
+    flexTable = PrettyTable()
+    
+    count = 0
+
     for line in flexCsv:
-      print(line)
+        if len(line) > 0:
+            if count == 0:
+                flexTable.field_names = line
+            else:
+                flexTable.add_row(line)
+
+        count = count + 1
+
+    print(flexTable)
+
 else:
     print("Error getting flex query result %d" % (flexReq.status_code))
     sys.exit()
-
