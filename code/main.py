@@ -2,6 +2,7 @@ import os
 import sys
 import requests
 import csv
+import logging
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 from telegram import Bot
@@ -12,6 +13,13 @@ from telegram.ext import (
     Filters )
 
 
+logging.basicConfig(
+    filename='/tmp/alert-bot.log', 
+    level=logging.DEBUG, 
+    filemode='w', 
+    format='%(asctime)s - [%(name)s][%(levelname)s] - %(message)s'
+)
+
 reportDict =	{
   'DIVS_DAILY': {
       'id':'377985'
@@ -20,20 +28,21 @@ reportDict =	{
 
 def main():
 
-    # Get environment variables
+    logging.info("Initializing bot")
 
+    # Get environment variables
     requiredEnv = [ 'TELEGRAM_BOT_TOKEN','IB_TOKEN' ]
 
     for envVar in requiredEnv:
         if envVar not in os.environ:
-            print("Required environment variable not found %s" % (envVar))
+            logging.critical("Required environment variable not found %s", envVar)
             sys.exit()
 
     try:
         ibToken = os.environ['IB_TOKEN']
         telegramBotToken = os.environ['TELEGRAM_BOT_TOKEN']
     except Exception:
-        print("Error getting environment variables")
+        logging.critical("Error getting environment variables",exc_info=True)
         sys.exit()
 
     # Initialize telegram bot
@@ -81,7 +90,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
 
     # Get IB API info
 
-    print("Obtaining report reference code with token %s and query ID %s" % (ibToken,ibFlexId))
+    logging.debug("Obtaining report reference code with token %s and query ID %s",ibToken,ibFlexId)
 
     referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
     referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
@@ -90,12 +99,12 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         referenceTree = ET.fromstring(referenceReq.text)
         referenceCode = referenceTree.findtext('ReferenceCode')
         if referenceTree.findtext('Status') != "Success":
-            print("Got [%s] result from request [%s]: %s" % (referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage')))
+            logging.critical("Got [%s] result from request [%s]: %s", referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage'))
             sys.exit()
         else:
-            print("Got reference code %s" % (referenceCode))
+            logging.debug("Got reference code %s", referenceCode)
     else:
-        print("Error getting reference code %d" % (referenceReq.status_code))
+        logging.critical("Error getting reference code %d", referenceReq.status_code)
         sys.exit()
 
 
@@ -109,7 +118,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         try:
             flexTree = ET.fromstring(flexReq.text)
             if referenceTree.findtext('Status') != "Success":
-                print("Got [%s] result from request [%s]: %s" % (flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage')))
+                logging.critical("Got [%s] result from request [%s]: %s",flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage'))
                 sys.exit()
         except:
             pass
@@ -117,7 +126,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         return flexReq.text
 
     else:
-        print("Error getting flex query result %d" % (flexReq.status_code))
+        logging.critical("Error getting flex query result %d", flexReq.status_code)
         sys.exit()
 
 
