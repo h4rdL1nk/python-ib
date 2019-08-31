@@ -98,19 +98,19 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams,timeout=5)
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
-        sys.exit()
+        return
 
     if referenceReq.status_code == 200:
         referenceTree = ET.fromstring(referenceReq.text)
         referenceCode = referenceTree.findtext('ReferenceCode')
         if referenceTree.findtext('Status') != "Success":
             logging.critical("Got [%s] result from request [%s]: %s", referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage'))
-            sys.exit()
+            return
         else:
             logging.debug("Got reference code %s", referenceCode)
     else:
         logging.critical("Error getting reference code %d", referenceReq.status_code)
-        sys.exit()
+        return
 
 
     # Get IB FlexQuery result
@@ -121,7 +121,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
         flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams,timeout=5)
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
-        sys.exit()
+        return
 
     if flexReq.status_code == 200:
         # Check if response has XML format
@@ -129,7 +129,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
             flexTree = ET.fromstring(flexReq.text)
             if referenceTree.findtext('Status') != "Success":
                 logging.critical("Got [%s] result from request [%s]: %s",flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage'))
-                sys.exit()
+                return
         except:
             pass
 
@@ -137,7 +137,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
 
     else:
         logging.critical("Error getting flex query result %d", flexReq.status_code)
-        sys.exit()
+        return
 
 
 def printCsvAsTable( csvString ):
