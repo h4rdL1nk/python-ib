@@ -103,14 +103,15 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     logging.debug("Obtaining report reference code with token %s and query ID %s",ibToken,ibFlexId)
 
     referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
+    referenceEndpoint = 'https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest'
 
     try:
-        referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams,timeout=5)
+        referenceReq = requests.get(referenceEndpoint, params=referenceParams,timeout=5)
     except requests.exceptions.ConnectTimeout as timeoutExc:
-        logging.critical("Timeout calling IB endpoint")
+        logging.critical("Timeout calling IB reference endpoint: %s" % referenceEndpoint )
         return
     except Exception:
-        logging.critical("Error calling IB endpoint",exc_info=True)
+        logging.critical("Error calling IB reference endpoint",exc_info=True)
         return
 
     if referenceReq.status_code == 200:
@@ -129,14 +130,15 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     # Get IB FlexQuery result
 
     flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
+    flexEndpoint = 'https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement'
 
     try:
-        flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams,timeout=5)
+        flexReq = requests.get(flexEndpoint, params=flexParams,timeout=5)
     except requests.exceptions.ConnectTimeout as timeoutExc:
-        logging.critical("Timeout calling IB endpoint")
+        logging.critical("Timeout calling IB flexQuery endpoint: %s" % flexEndpoint )
         return
     except Exception:
-        logging.critical("Error calling IB endpoint",exc_info=True)
+        logging.critical("Error calling IB flexQuery endpoint",exc_info=True)
         return
 
     if flexReq.status_code == 200:
