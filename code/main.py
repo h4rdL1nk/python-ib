@@ -93,7 +93,11 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     logging.debug("Obtaining report reference code with token %s and query ID %s",ibToken,ibFlexId)
 
     referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
-    referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
+
+    try:
+        referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
+    except Exception:
+        logging.critical("Error calling IB endpoint",exc_info=True)
 
     if referenceReq.status_code == 200:
         referenceTree = ET.fromstring(referenceReq.text)
@@ -111,7 +115,11 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     # Get IB FlexQuery result
 
     flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
-    flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
+
+    try:
+        flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
+    except Exception:
+        logging.critical("Error calling IB endpoint",exc_info=True)
 
     if flexReq.status_code == 200:
         # Check if response has XML format
