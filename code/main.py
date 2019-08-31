@@ -13,9 +13,14 @@ from telegram.ext import (
     Filters )
 
 
+if 'BOT_LOG_LEVEL' in os.environ and os.environ['BOT_LOG_LEVEL'] in ['DEBUG','INFO','WARNING','ERROR','CRITICAL']:
+    logLevel = os.environ['BOT_LOG_LEVEL']
+else:
+    logLevel = 'INFO'
+
 logging.basicConfig(
     filename='/tmp/alert-bot.log', 
-    level=logging.DEBUG, 
+    level=logging.getLevelName(logLevel),
     filemode='w', 
     format='%(asctime)s - [%(name)s][%(levelname)s] - %(message)s'
 )
