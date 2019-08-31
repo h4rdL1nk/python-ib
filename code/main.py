@@ -1,6 +1,7 @@
 import os
 import sys
 import requests
+import urllib3
 import csv
 import logging
 import xml.etree.ElementTree as ET
@@ -68,7 +69,11 @@ def getReport(bot, update):
     reportName = "DIVS_DAILY"
 
     flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
-    flexCsv = csv.reader(flexResult.splitlines())
+
+    if flexResult is None:
+        return
+    else:
+        flexCsv = csv.reader(flexResult.splitlines())
 
     line_count = 0
     fields = []
@@ -101,6 +106,9 @@ def getIBFlexQuery( ibToken, ibFlexId ):
 
     try:
         referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams,timeout=5)
+    except requests.exceptions.ConnectTimeout as timeoutExc:
+        logging.critical("Timeout calling IB endpoint")
+        return
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
         return
@@ -124,6 +132,9 @@ def getIBFlexQuery( ibToken, ibFlexId ):
 
     try:
         flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams,timeout=5)
+    except requests.exceptions.ConnectTimeout as timeoutExc:
+        logging.critical("Timeout calling IB endpoint")
+        return
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
         return
