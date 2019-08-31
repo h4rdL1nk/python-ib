@@ -95,7 +95,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
 
     try:
-        referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams)
+        referenceReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest', params=referenceParams,timeout=5)
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
 
@@ -117,7 +117,7 @@ def getIBFlexQuery( ibToken, ibFlexId ):
     flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
 
     try:
-        flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams)
+        flexReq = requests.get('https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement', params=flexParams,timeout=5)
     except Exception:
         logging.critical("Error calling IB endpoint",exc_info=True)
 
