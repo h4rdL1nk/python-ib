@@ -4,6 +4,8 @@ import requests
 import urllib3
 import csv
 import logging
+import threading
+from time import sleep
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 from telegram import Bot
@@ -37,7 +39,7 @@ def main():
     logging.info("Initializing bot")
 
     # Get environment variables
-    requiredEnv = [ 'TELEGRAM_BOT_TOKEN','IB_TOKEN' ]
+    requiredEnv = [ 'TELEGRAM_BOT_TOKEN','TELEGRAM_USER_ID','IB_TOKEN' ]
 
     for envVar in requiredEnv:
         if envVar not in os.environ:
@@ -47,6 +49,7 @@ def main():
     try:
         ibToken = os.environ['IB_TOKEN']
         telegramBotToken = os.environ['TELEGRAM_BOT_TOKEN']
+        telegramUserId = os.environ['TELEGRAM_USER_ID']
     except Exception:
         logging.critical("Error getting environment variables",exc_info=True)
         sys.exit()
@@ -60,9 +63,20 @@ def main():
     start_handler = CommandHandler('getReport', getReport)
     dispatcher.add_handler(start_handler)
 
+    th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId))
+    th_update.start()
+
     #flexResult = getIBFlexQuery( ibToken, ibFlexId )
     #flexTable = printCsvAsTable( flexResult )
 
+def _sendUpdates(bot,userId):
+    
+    bot.send_message(
+            chat_id=userId,
+            text="Error getting flex query result"
+    )
+
+    sleep(60)
 
 def getReport(bot, update):
 
