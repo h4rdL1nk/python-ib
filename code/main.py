@@ -71,6 +71,10 @@ def getReport(bot, update):
     flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
 
     if flexResult is None:
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text="Error getting flex query result"
+        )
         return
     else:
         flexCsv = csv.reader(flexResult.splitlines())
