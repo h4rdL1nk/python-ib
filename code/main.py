@@ -61,8 +61,8 @@ def main():
     dispatcher = updater.dispatcher
     updater.start_polling()
 
-    start_handler = CommandHandler('getReport', _getReport)
-    dispatcher.add_handler(start_handler)
+    #start_handler = CommandHandler('getReport', _getReport)
+    #dispatcher.add_handler(start_handler)
 
     th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId))
     th_update.start()
@@ -132,43 +132,6 @@ def _sendReport(bot,userId,reportName):
                     text=botMessage
                 )
         line_count = line_count + 1
-
-
-def _getReport(bot, update):
-
-    reportName = "DIVS_DAILY"
-
-    flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
-
-    if flexResult is None:
-        bot.send_message(
-            chat_id=update.message.chat_id,
-            text="Error getting flex query result"
-        )
-        return
-    else:
-        flexCsv = csv.reader(flexResult.splitlines())
-
-    line_count = 0
-    fields = []
-    for line in flexCsv:
-        if len(line) > 0:
-            if line_count == 0:
-                for headerField in line:
-                    fields.append(headerField)
-            else:
-                count = 0
-                botMessage = ""
-                for field in fields:
-                    botMessage = botMessage + field + ": " + line[count] + " \n"
-                    count = count + 1
-
-                bot.send_message(
-                    chat_id=update.message.chat_id,
-                    text=botMessage
-                )
-        line_count = line_count + 1
-
 
 def getIBFlexQuery( ibToken, ibFlexId ):
 
