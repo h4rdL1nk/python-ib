@@ -10,6 +10,7 @@ from time import sleep
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 from telegram import Bot
+from telegram import ParseMode
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -61,9 +62,10 @@ def main():
     dispatcher = updater.dispatcher
     updater.start_polling()
 
-    #start_handler = CommandHandler('getReport', _getReport)
-    #dispatcher.add_handler(start_handler)
+    start_handler = CommandHandler('getTable', _getTable)
+    dispatcher.add_handler(start_handler)
 
+    # Create loop
     th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId))
     th_update.start()
 
@@ -71,10 +73,18 @@ def main():
     #flexTable = printCsvAsTable( flexResult )
 
 
+def _getTable(bot,update):
+
+    bot.send_message(
+        chat_id=update.message.chat_id, 
+        text="*bold* _italic_ `fixed width font` [link](http://google.com).",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+
 def _sendUpdates(bot,userId):
     
-    todayDate = datetime.date.today()
-    todayStr = todayDate.strftime('%Y%m%d')
+    todayStr = datetime.date.today().strftime('%Y%m%d')
 
     while True:
 
@@ -97,7 +107,7 @@ def _sendUpdates(bot,userId):
             if f.write(todayStr):
                 _sendReport(bot,userId,'DIVS_DAILY')
 
-        sleep(5)
+        sleep(60)
 
 
 def _sendReport(bot,userId,reportName):
@@ -124,12 +134,13 @@ def _sendReport(bot,userId,reportName):
                 count = 0
                 botMessage = ""
                 for field in fields:
-                    botMessage = botMessage + field + ": " + line[count] + " \n"
+                    botMessage = botMessage + "*" + field + "*: " + line[count] + " \n"
                     count = count + 1
 
                 bot.send_message(
                     chat_id=userId,
-                    text=botMessage
+                    text=botMessage,
+                    parse_mode=ParseMode.MARKDOWN
                 )
         line_count = line_count + 1
 
