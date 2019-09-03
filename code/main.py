@@ -83,10 +83,10 @@ def _getTable(bot,update):
 
 
 def _sendUpdates(bot,userId):
-    
-    todayStr = datetime.date.today().strftime('%Y%m%d')
 
     while True:
+
+        todayStr = datetime.date.today().strftime('%Y%m%d')
 
         if os.path.isfile('/tmp/alert-bot.stat'):
 
