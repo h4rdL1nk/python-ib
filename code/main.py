@@ -62,50 +62,27 @@ def main():
     dispatcher = updater.dispatcher
     updater.start_polling()
 
-    start_handler = CommandHandler('getTable', _getTable)
-    dispatcher.add_handler(start_handler)
+    #start_handler = CommandHandler('getTable', _getTable)
+    #dispatcher.add_handler(start_handler)
 
     # Create loop
-    th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId))
+    th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId,reportDict))
     th_update.start()
 
-    #flexResult = getIBFlexQuery( ibToken, ibFlexId )
-    #flexTable = printCsvAsTable( flexResult )
 
-
-def _getTable(bot,update):
-
-    bot.send_message(
-        chat_id=update.message.chat_id, 
-        text="*bold* _italic_ `fixed width font` [link](http://google.com).",
-        parse_mode=ParseMode.MARKDOWN
-    )
-
-
-def _sendUpdates(bot,userId):
+def _sendUpdates(bot,userId,reports):
 
     while True:
 
         todayStr = datetime.date.today().strftime('%Y%m%d')
 
         if os.path.isfile('/tmp/alert-bot.stat'):
-
-            f = open('/tmp/alert-bot.stat','r')
-
-            if f.read() != todayStr:
-
-                f.close()
-                f = open('/tmp/alert-bot.stat','w')
-
-                if f.write(todayStr):
-                    _sendReport(bot,userId,'DIVS_DAILY')
-
-        else:
-
-            f = open('/tmp/alert-bot.stat','w')
-
-            if f.write(todayStr):
+            if (open('/tmp/alert-bot.stat','r').read()) != todayStr:
                 _sendReport(bot,userId,'DIVS_DAILY')
+                open('/tmp/alert-bot.stat','w').write(todayStr)
+        else:
+            _sendReport(bot,userId,'DIVS_DAILY')
+            open('/tmp/alert-bot.stat','w').write(todayStr)            
 
         sleep(60)
 
