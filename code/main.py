@@ -1,21 +1,15 @@
 import os
 import sys
-import requests
-import urllib3
 import csv
 import logging
 import threading
 import datetime
 from time import sleep
-import xml.etree.ElementTree as ET
-from prettytable import PrettyTable
-from telegram import Bot
-from telegram import ParseMode
-from telegram.ext import (
-    Updater,
-    CommandHandler,
-    MessageHandler,
-    Filters )
+from telegram import ( Bot, ParseMode, Update )
+from telegram.ext import ( Updater, CommandHandler, MessageHandler, Filters, CallbackContext )
+
+import ib
+import utils
 
 
 if 'BOT_LOG_LEVEL' in os.environ and os.environ['BOT_LOG_LEVEL'] in ['DEBUG','INFO','WARNING','ERROR','CRITICAL']:
@@ -33,7 +27,17 @@ logging.basicConfig(
 reportDict =	{
   'DIVS_DAILY': {
       'id':'377985'
+  },
+  'OPS_CUR_YEAR': {
+      'id':'377354'
+  },
+  'DIVS_CUR_YEAR': {
+      'id':'377884'
+  },
+  'CUR_POSITIONS': {
+      'id':'378530'
   }
+
 }
 
 def main():
@@ -60,36 +64,57 @@ def main():
     bot_instance = Bot(token=telegramBotToken)
     updater = Updater(bot=bot_instance)
     dispatcher = updater.dispatcher
+
+    # Add handlers
+    dispatcher.add_handler( CommandHandler( 'start', _cmdStart ) )
+    dispatcher.add_handler( CommandHandler( 'list_reports', _cmdListReports ) )
+
     updater.start_polling()
 
-    #start_handler = CommandHandler('getTable', _getTable)
-    #dispatcher.add_handler(start_handler)
-
     # Create loop
-    th_update = threading.Thread(target=_sendUpdates,args=(bot_instance,telegramUserId,reportDict))
+    th_update = threading.Thread(target=_sendUpdatesDaily,args=( bot_instance, telegramUserId, reportDict, ibToken ) )
     th_update.start()
 
 
-def _sendUpdates(bot,userId,reports):
+def _cmdStart( bot: Bot, update: Update ):
+
+    bot.send_message( chat_id=update.message.chat.id, text="Hi, I am alerter bot" )
+
+
+def _cmdListReports( bot: Bot, update: Update ):
+   
+    textMessage = ""
+
+    for reportName in reportDict:
+        textMessage = textMessage + "\n- " + reportName
+
+    bot.send_message( chat_id=update.message.chat.id, text=textMessage )
+
+
+def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
 
     while True:
 
         todayStr = datetime.date.today().strftime('%Y%m%d')
 
         if os.path.isfile('/tmp/alert-bot.stat'):
+
             if (open('/tmp/alert-bot.stat','r').read()) != todayStr:
-                _sendReport(bot,userId,'DIVS_DAILY')
+                
+                _sendReport(bot,userId,'DIVS_DAILY',token)
                 open('/tmp/alert-bot.stat','w').write(todayStr)
+
         else:
-            _sendReport(bot,userId,'DIVS_DAILY')
+
+            _sendReport(bot,userId,'DIVS_DAILY',token)
             open('/tmp/alert-bot.stat','w').write(todayStr)            
 
         sleep(60)
 
 
-def _sendReport(bot,userId,reportName):
+def _sendReport( bot, userId, reportName, token="dummy" ):
 
-    flexResult = getIBFlexQuery( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
+    flexResult = ib.getIBFlex( token, reportDict[reportName]['id'] )
 
     if flexResult is None:
         bot.send_message(
@@ -120,87 +145,6 @@ def _sendReport(bot,userId,reportName):
                     parse_mode=ParseMode.MARKDOWN
                 )
         line_count = line_count + 1
-
-def getIBFlexQuery( ibToken, ibFlexId ):
-
-    # Get IB API info
-
-    logging.debug("Obtaining report reference code with token %s and query ID %s",ibToken,ibFlexId)
-
-    referenceParams = {'t': ibToken, 'q': ibFlexId, 'v': '3'}
-    referenceEndpoint = 'https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.SendRequest'
-
-    try:
-        referenceReq = requests.get(referenceEndpoint, params=referenceParams,timeout=5)
-    except requests.exceptions.ConnectTimeout as timeoutExc:
-        logging.critical("Timeout calling IB reference endpoint: %s" % referenceEndpoint )
-        return
-    except Exception:
-        logging.critical("Error calling IB reference endpoint",exc_info=True)
-        return
-
-    if referenceReq.status_code == 200:
-        referenceTree = ET.fromstring(referenceReq.text)
-        referenceCode = referenceTree.findtext('ReferenceCode')
-        if referenceTree.findtext('Status') != "Success":
-            logging.critical("Got [%s] result from request [%s]: %s", referenceTree.findtext('Status'),referenceTree.findtext('ErrorCode'),referenceTree.findtext('ErrorMessage'))
-            return
-        else:
-            logging.debug("Got reference code %s", referenceCode)
-    else:
-        logging.critical("Error getting reference code %d", referenceReq.status_code)
-        return
-
-
-    # Get IB FlexQuery result
-
-    flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
-    flexEndpoint = 'https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement'
-
-    try:
-        flexReq = requests.get(flexEndpoint, params=flexParams,timeout=5)
-    except requests.exceptions.ConnectTimeout as timeoutExc:
-        logging.critical("Timeout calling IB flexQuery endpoint: %s" % flexEndpoint )
-        return
-    except Exception:
-        logging.critical("Error calling IB flexQuery endpoint",exc_info=True)
-        return
-
-    if flexReq.status_code == 200:
-        # Check if response has XML format
-        try:
-            flexTree = ET.fromstring(flexReq.text)
-            if referenceTree.findtext('Status') != "Success":
-                logging.critical("Got [%s] result from request [%s]: %s",flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage'))
-                return
-        except:
-            pass
-
-        return flexReq.text
-
-    else:
-        logging.critical("Error getting flex query result %d", flexReq.status_code)
-        return
-
-
-def printCsvAsTable( csvString ):
-
-    flexCsv = csv.reader(csvString.splitlines())
-
-    flexTable = PrettyTable()
-    
-    count = 0
-
-    for line in flexCsv:
-        if len(line) > 0:
-            if count == 0:
-                flexTable.field_names = line
-            else:
-                flexTable.add_row(line)
-
-        count = count + 1
-
-    return flexTable
 
 
 if __name__ == "__main__":
