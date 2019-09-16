@@ -2,3 +2,4 @@ requests
 prettytable
 python-telegram-bot
 logging
+shell

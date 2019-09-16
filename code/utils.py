@@ -1,3 +1,6 @@
+import os
+import subprocess
+import datetime
 import csv
 from prettytable import PrettyTable
 
@@ -19,3 +22,17 @@ def csvToTable( csvString ):
         count = count + 1
 
     return flexTable
+
+
+def htmlToImage( htmlString ):
+
+    convertImgTs = str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+    convertImgOrig = "/tmp/image-" + convertImgTs + ".html"
+    convertImgDest = "/tmp/image-" + convertImgTs + ".jpg"
+
+    open(convertImgOrig,'w').write(htmlString)
+    
+    subprocess.run(["wkhtmltoimage",convertImgOrig,convertImgDest], check=True)
+
+    return convertImgDest
+

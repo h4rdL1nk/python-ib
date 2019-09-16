@@ -68,6 +68,7 @@ def main():
     # Add handlers
     dispatcher.add_handler( CommandHandler( 'start', _cmdStart ) )
     dispatcher.add_handler( CommandHandler( 'list_reports', _cmdListReports ) )
+    dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg ) )
 
     updater.start_polling()
 
@@ -110,6 +111,41 @@ def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
             open('/tmp/alert-bot.stat','w').write(todayStr)            
 
         sleep(60)
+
+
+def _sendReportImg( bot: Bot, update: Update ):
+
+    reportName = "DIVS_DAILY"
+
+    flexResult = ib.getIBFlex( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
+
+    if flexResult is None:
+        bot.send_message(
+            chat_id=update.message.chat.id,
+            text="Error getting flex query result"
+        )
+        return
+    else:
+        flexCsv = csv.reader(flexResult.splitlines())
+
+        flexHtml = "<table>"
+        for line in flexCsv:
+            htmlLine = "<tr>"
+            for item in line:
+                htmlLine = htmlLine + "<td>" + item
+            flexHtml = flexHtml + htmlLine
+
+        flexHtml = flexHtml + "</table>"
+
+        imgPath = utils.htmlToImage(flexHtml)
+
+        bot.send_photo(
+            chat_id=update.message.chat.id, 
+            photo=open(imgPath, 'rb'), 
+            caption="IB Report " + reportName
+        )
+
+        bot.send_message( chat_id=update.message.chat.id, text="Hi, I am alerter bot" )
 
 
 def _sendReport( bot, userId, reportName, token="dummy" ):
