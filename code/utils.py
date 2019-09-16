@@ -32,7 +32,9 @@ def htmlToImage( htmlString ):
 
     open(convertImgOrig,'w').write(htmlString)
     
-    subprocess.run(["wkhtmltoimage",convertImgOrig,convertImgDest], check=True)
+    #subprocess.run(["wkhtmltoimage",convertImgOrig,convertImgDest], check=True)
+    proc = subprocess.Popen(["wkhtmltoimage",convertImgOrig,convertImgDest], stdout=subprocess.PIPE)
+    output = proc.stdout.read()
 
     return convertImgDest
 

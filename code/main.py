@@ -66,9 +66,9 @@ def main():
     dispatcher = updater.dispatcher
 
     # Add handlers
-    dispatcher.add_handler( CommandHandler( 'start', _cmdStart ) )
+    dispatcher.add_handler( CommandHandler( 'start', _cmdStart, pass_args=True ) )
     dispatcher.add_handler( CommandHandler( 'list_reports', _cmdListReports ) )
-    dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg ) )
+    dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg, pass_args=True ) )
 
     updater.start_polling()
 
@@ -77,9 +77,10 @@ def main():
     th_update.start()
 
 
-def _cmdStart( bot: Bot, update: Update ):
+def _cmdStart( bot, update, args ):
 
-    bot.send_message( chat_id=update.message.chat.id, text="Hi, I am alerter bot" )
+    user_says = " ".join(args)
+    bot.send_message( chat_id=update.message.chat.id, text="User said: " + user_says )
 
 
 def _cmdListReports( bot: Bot, update: Update ):
@@ -113,9 +114,11 @@ def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
         sleep(60)
 
 
-def _sendReportImg( bot: Bot, update: Update ):
+def _sendReportImg( bot: Bot, update: Update, args: list ):
 
-    reportName = "DIVS_DAILY"
+    reportName = args[0]
+
+    logging.info( "Executing callback function [_sendReportImg] for report " + reportName )
 
     flexResult = ib.getIBFlex( os.environ['IB_TOKEN'], reportDict[reportName]['id'] )
 
@@ -128,7 +131,7 @@ def _sendReportImg( bot: Bot, update: Update ):
     else:
         flexCsv = csv.reader(flexResult.splitlines())
 
-        flexHtml = "<table>"
+        flexHtml = "<head><style>td { border: 1px solid; padding: 2px; text-align: center; }</style></head><table>"
         for line in flexCsv:
             htmlLine = "<tr>"
             for item in line:
@@ -144,8 +147,6 @@ def _sendReportImg( bot: Bot, update: Update ):
             photo=open(imgPath, 'rb'), 
             caption="IB Report " + reportName
         )
-
-        bot.send_message( chat_id=update.message.chat.id, text="Hi, I am alerter bot" )
 
 
 def _sendReport( bot, userId, reportName, token="dummy" ):

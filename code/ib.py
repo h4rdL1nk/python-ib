@@ -1,6 +1,7 @@
 import requests
 import logging
 import urllib3
+from time import sleep
 import xml.etree.ElementTree as ET
 
 def getIBFlex( ibToken, ibFlexId ):
@@ -33,6 +34,7 @@ def getIBFlex( ibToken, ibFlexId ):
         logging.critical("Error getting reference code %d", referenceReq.status_code)
         return
 
+    sleep(5)
 
     # Get IB FlexQuery result
 
