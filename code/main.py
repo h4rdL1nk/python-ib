@@ -36,6 +36,9 @@ reportDict =	{
   },
   'CUR_POSITIONS': {
       'id':'378530'
+  },
+  'INTERESTS_CUR_YEAR': {
+      'id':'380500'
   }
 
 }
