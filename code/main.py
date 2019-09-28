@@ -25,6 +25,9 @@ logging.basicConfig(
 )
 
 reportDict =	{
+  'DIVS_RETR_DAILY': {
+      'id':'381072'
+  },
   'DIVS_DAILY': {
       'id':'377985'
   },
@@ -106,12 +109,14 @@ def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
 
             if (open('/tmp/alert-bot.stat','r').read()) != todayStr:
                 
-                _sendReport(bot,userId,'DIVS_DAILY',token)
+                #_sendReport( bot, userId, 'DIVS_DAILY', token)
+                _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
                 open('/tmp/alert-bot.stat','w').write(todayStr)
 
         else:
 
-            _sendReport(bot,userId,'DIVS_DAILY',token)
+            #_sendReport(bot,userId,'DIVS_DAILY',token)
+            _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
             open('/tmp/alert-bot.stat','w').write(todayStr)            
 
         sleep(60)
@@ -185,6 +190,48 @@ def _sendReport( bot, userId, reportName, token="dummy" ):
                     parse_mode=ParseMode.MARKDOWN
                 )
         line_count = line_count + 1
+
+
+def _sendChargedDividends( bot, userId, reportName, token="dummy" ):
+
+    flexResult = ib.getIBFlex( token, reportDict[reportName]['id'] )
+
+    if flexResult is None:
+        bot.send_message(
+            chat_id=userId,
+            text="Error getting flex query result"
+        )
+        return
+    else:
+        flexCsv = csv.reader(flexResult.splitlines())
+
+    dataHeaders = []
+    rowCount = 0
+
+    for row in flexCsv:
+
+        if rowCount == 0:
+            for field in row:
+                dataHeaders.append(field)
+        else:
+            if len(row) == len(dataHeaders):
+
+                if row[dataHeaders.index('ActivityCode')] == 'DIV' and row[dataHeaders.index('LevelOfDetail')] == 'Currency':
+                    
+                    headerCount = 0
+                    botMessage = ""
+
+                    for header in dataHeaders:
+                        botMessage = botMessage + "*" + header + "*: " + row[headerCount] + " \n"
+                        headerCount = headerCount + 1
+
+                    bot.send_message(
+                        chat_id=userId,
+                        text=botMessage,
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+
+        rowCount = rowCount + 1
 
 
 if __name__ == "__main__":
