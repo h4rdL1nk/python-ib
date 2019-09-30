@@ -55,9 +55,11 @@ def csvDividendsToObj( csvString ):
                     headers.append(header)
 
             if row[headers.index('ActivityCode')] == 'DIV' and row[headers.index('LevelOfDetail')] == 'Currency':
+                chargeDate = row[headers.index('Date')]
                 desc = row[headers.index('ActivityDescription')]
                 symbol = row[headers.index('Symbol')]
                 amount = row[headers.index('Amount')]
+                currency = row[headers.index('CurrencyPrimary')]
 
                 matches = re.match("(.*)\(([A-Z0-9]+)\).*([0-9]+.[0-9]+)",desc)
 
@@ -68,7 +70,15 @@ def csvDividendsToObj( csvString ):
                     isin = "n/a"
                     amount_per_share = "n/a"
 
-                dividendObj = { "symbol": symbol, "shares": str((float(amount) / float(amount_per_share))), "amountSh": str(amount_per_share), "amountTotal": str(amount)}
+                dividendObj = { 
+                    "Date": chargeDate, 
+                    "Symbol": symbol, 
+                    "Shares": str((float(amount) / float(amount_per_share))), 
+                    "Currency": currency, 
+                    "AmountShare": str(amount_per_share), 
+                    "AmountTotal": str(amount)
+                }
+                
                 dividendsDict.append(dividendObj)
 
         row_count = row_count + 1

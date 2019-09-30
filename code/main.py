@@ -191,8 +191,40 @@ def _sendReport( bot, userId, reportName, token="dummy" ):
                 )
         line_count = line_count + 1
 
-
 def _sendChargedDividends( bot, userId, reportName, token="dummy" ):
+
+    flexResult = ib.getIBFlex( token, reportDict[reportName]['id'] )
+
+    if flexResult is None:
+        bot.send_message(
+            chat_id=userId,
+            text="Error getting flex query result"
+        )
+        return
+    else:
+        dividendsObj = utils.csvDividendsToObj( flexResult )
+
+    if len(dividendsObj) > 0:
+
+        bot.send_message(
+                chat_id=userId,
+                text="*Dividends found !!*",
+                parse_mode=ParseMode.MARKDOWN
+        )
+
+        for dividend in dividendsObj:
+            botMessage = ""
+            for item in dividend:
+                botMessage = botMessage + "*" + item + "*: " + dividend[item] + " \n"
+
+            bot.send_message(
+                chat_id=userId,
+                text=botMessage,
+                parse_mode=ParseMode.MARKDOWN
+            )
+
+
+def _sendChargedDividendsOld( bot, userId, reportName, token="dummy" ):
 
     flexResult = ib.getIBFlex( token, reportDict[reportName]['id'] )
 
