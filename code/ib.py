@@ -41,6 +41,10 @@ def getIBFlex( ibToken, ibFlexId ):
     flexParams = {'t': ibToken, 'q': referenceCode, 'v': '3'}
     flexEndpoint = 'https://gdcdyn.interactivebrokers.com/Universal/servlet/FlexStatementService.GetStatement'
 
+    retry = 4
+    http_code = 0
+    xml_status = ""
+
     try:
         flexReq = requests.get(flexEndpoint, params=flexParams,timeout=5)
     except requests.exceptions.ConnectTimeout as timeoutExc:
@@ -49,14 +53,23 @@ def getIBFlex( ibToken, ibFlexId ):
     except Exception:
         logging.critical("Error calling IB flexQuery endpoint",exc_info=True)
         return
-
+ 
     if flexReq.status_code == 200:
         # Check if response has XML format
         try:
             flexTree = ET.fromstring(flexReq.text)
-            if referenceTree.findtext('Status') != "Success":
-                logging.critical("Got [%s] result from request [%s]: %s",flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage'))
+            xml_status = referenceTree.findtext('Status')
+
+            while retry > 0 and xml_status != "Success":
+                flexReq = requests.get(flexEndpoint, params=flexParams,timeout=5)
+                flexTree = ET.fromstring(flexReq.text)
+                xml_status = referenceTree.findtext('Status')
+                retry = retry - 1
+
+            if xml_status != "Success":
+                logging.critical("Got [%s] result from request [%s]: %s after %d retries",flexTree.findtext('Status'),flexTree.findtext('ErrorCode'),flexTree.findtext('ErrorMessage'),retry)
                 return
+
         except:
             pass
 

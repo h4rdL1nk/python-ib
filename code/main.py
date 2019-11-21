@@ -25,6 +25,9 @@ logging.basicConfig(
 )
 
 reportDict =	{
+  'YEAR_FUNDS_STATEMENT': {
+      'id':'388465'
+  },
   'DIVS_RETR_DAILY': {
       'id':'381072'
   },
@@ -222,6 +225,8 @@ def _sendChargedDividends( bot, userId, reportName, token="dummy" ):
                 text=botMessage,
                 parse_mode=ParseMode.MARKDOWN
             )
+    else:
+        logging.info( "No charged dividends for this day" )
 
 
 def _sendChargedDividendsOld( bot, userId, reportName, token="dummy" ):
