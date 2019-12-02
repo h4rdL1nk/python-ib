@@ -28,6 +28,9 @@ reportDict =	{
   'YEAR_FUNDS_STATEMENT': {
       'id':'388465'
   },
+  'DAILY_FUNDS_STATEMENT': {
+      'id':'000000'
+  },
   'DIVS_RETR_DAILY': {
       'id':'381072'
   },
@@ -127,6 +130,7 @@ def _sendUpdatesHourly( bot, userId, reports, token="dummy" ):
 
         if launchHourly and datetime.datetime.now().hour == 7:
             logging.info( "Executing daily launch for matched hour [7]" )
+            #_sendDividendsFundMoves( bot, userId, 'DAILY_FUNDS_STATEMENT', token )
             _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
 
         sleep(60)
@@ -236,7 +240,7 @@ def _sendChargedDividends( bot, userId, reportName, token="dummy" ):
         logging.info( "No charged dividends for this day" )
 
 
-def _sendChargedDividendsOld( bot, userId, reportName, token="dummy" ):
+def _sendDividendsFundMoves( bot, userId, reportName, token="dummy" ):
 
     flexResult = ib.getIBFlex( token, reportDict[reportName]['id'] )
 
@@ -247,35 +251,32 @@ def _sendChargedDividendsOld( bot, userId, reportName, token="dummy" ):
         )
         return
     else:
-        flexCsv = csv.reader(flexResult.splitlines())
+        dividendsObj = utils.csvFundsToDividends( flexResult )
 
-    dataHeaders = []
-    rowCount = 0
+    if len(dividendsObj) > 0:
 
-    for row in flexCsv:
+        bot.send_message(
+                chat_id=userId,
+                text="*Dividends funds moves found !!*",
+                parse_mode=ParseMode.MARKDOWN
+        )
 
-        if rowCount == 0:
-            for field in row:
-                dataHeaders.append(field)
-        else:
-            if len(row) == len(dataHeaders):
+        for symbol in dividendsObj:
+            for date in dividendsDict[symbol]:
 
-                if row[dataHeaders.index('ActivityCode')] == 'DIV' and row[dataHeaders.index('LevelOfDetail')] == 'Currency':
-                    
-                    headerCount = 0
-                    botMessage = ""
+                botMessage = ""
+                for item in dividendsDict[symbol][date]:
+                    botMessage = botMessage + "*" + item + "*: " + dividendsDict[symbol][date][item] + " \n"
 
-                    for header in dataHeaders:
-                        botMessage = botMessage + "*" + header + "*: " + row[headerCount] + " \n"
-                        headerCount = headerCount + 1
+                bot.send_message(
+                    chat_id=userId,
+                    text=botMessage,
+                    parse_mode=ParseMode.MARKDOWN
+                )
 
-                    bot.send_message(
-                        chat_id=userId,
-                        text=botMessage,
-                        parse_mode=ParseMode.MARKDOWN
-                    )
+    else:
+        logging.info( "No funds for dividends found" )
 
-        rowCount = rowCount + 1
 
 
 if __name__ == "__main__":
