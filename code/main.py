@@ -126,7 +126,7 @@ def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
             open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
 
-        if launchHourly and datetime.datetime.now().hour == 7
+        if launchHourly and datetime.datetime.now().hour == 7:
             logging.info( "Executing daily launch for matched hour [7]" )
             _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
 
