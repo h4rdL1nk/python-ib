@@ -80,7 +80,7 @@ def main():
     # Add handlers
     dispatcher.add_handler( CommandHandler( 'start', _cmdStart, pass_args=True ) )
     dispatcher.add_handler( CommandHandler( 'list_reports', _cmdListReports ) )
-    dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg, pass_args=True ) )
+    #dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg, pass_args=True ) )
 
     updater.start_polling()
 

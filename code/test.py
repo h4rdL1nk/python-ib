@@ -5,10 +5,10 @@ import csv
 import re
 import json
 
-
-secret_token = argv[1]
-
 def test():
+
+    if len(argv) > 0:
+        secret_token = argv[1]
 
     # Get year funds report
     fundsReport = ib.getIBFlex( secret_token, '388465' )
