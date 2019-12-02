@@ -24,12 +24,12 @@ logging.basicConfig(
     format='%(asctime)s - [%(name)s][%(levelname)s] - %(message)s'
 )
 
-reportDict =	{
+reportDict = {
   'YEAR_FUNDS_STATEMENT': {
       'id':'388465'
   },
   'DAILY_FUNDS_STATEMENT': {
-      'id':'000000'
+      'id':'389665'
   },
   'DIVS_RETR_DAILY': {
       'id':'381072'
