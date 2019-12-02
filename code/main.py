@@ -106,21 +106,28 @@ def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
 
     while True:
 
-        todayStr = datetime.date.today().strftime('%Y%m%d')
+        launchHourly = False
+
+        #todayStr = datetime.date.today().strftime('%Y%m%d')
+        todayHourStr = datetime.datetime.now().strftime('%Y%m%d%H')
 
         if os.path.isfile('/tmp/alert-bot.stat'):
 
-            if (open('/tmp/alert-bot.stat','r').read()) != todayStr:
-                
-                #_sendReport( bot, userId, 'DIVS_DAILY', token)
-                _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
-                open('/tmp/alert-bot.stat','w').write(todayStr)
+            if (open('/tmp/alert-bot.stat','r').read()) != todayHourStr:
+
+                launchHourly = True
+
+                open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
         else:
 
-            #_sendReport(bot,userId,'DIVS_DAILY',token)
+            launchHourly = True
+
+            open('/tmp/alert-bot.stat','w').write(todayHourStr)
+
+
+        if launchHourly and datetime.datetime.now().hour == 7:
             _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
-            open('/tmp/alert-bot.stat','w').write(todayStr)            
 
         sleep(60)
 
