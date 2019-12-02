@@ -82,7 +82,7 @@ def main():
     updater.start_polling()
 
     # Create loop
-    th_update = threading.Thread(target=_sendUpdatesDaily,args=( bot_instance, telegramUserId, reportDict, ibToken ) )
+    th_update = threading.Thread(target=_sendUpdatesHourly,args=( bot_instance, telegramUserId, reportDict, ibToken ) )
     th_update.start()
 
 
@@ -102,13 +102,12 @@ def _cmdListReports( bot: Bot, update: Update ):
     bot.send_message( chat_id=update.message.chat.id, text=textMessage )
 
 
-def _sendUpdatesDaily( bot, userId, reports, token="dummy" ):
+def _sendUpdatesHourly( bot, userId, reports, token="dummy" ):
 
     while True:
 
         launchHourly = False
 
-        #todayStr = datetime.date.today().strftime('%Y%m%d')
         todayHourStr = datetime.datetime.now().strftime('%Y%m%d%H')
 
         if os.path.isfile('/tmp/alert-bot.stat'):
