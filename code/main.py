@@ -130,8 +130,8 @@ def _sendUpdatesHourly( bot, userId, reports, token="dummy" ):
 
         if launchHourly and datetime.datetime.now().hour == 7:
             logging.info( "Executing daily launch for matched hour [7]" )
-            #_sendDividendsFundMoves( bot, userId, 'DAILY_FUNDS_STATEMENT', token )
-            _sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
+            _sendDividendsFundMoves( bot, userId, 'DAILY_FUNDS_STATEMENT', token )
+            #_sendChargedDividends( bot, userId, 'DIVS_RETR_DAILY', token )
 
         sleep(60)
 
