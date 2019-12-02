@@ -90,7 +90,7 @@ def csvFundsToDividends( csvString ):
 
     dividendsDict = {}
 
-    fundsCsv = csv.reader(fundsReport.splitlines()) 
+    fundsCsv = csv.reader(csvString.splitlines()) 
 
     row_count = 0
     for row in fundsCsv:

@@ -118,13 +118,13 @@ def _sendUpdatesHourly( bot, userId, reports, token="dummy" ):
             if (open('/tmp/alert-bot.stat','r').read()) != todayHourStr:
 
                 launchHourly = True
-
+                logging.info( "Updating state file" )
                 open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
         else:
 
             launchHourly = True
-
+            logging.info( "Creating state file" )
             open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
 
@@ -262,11 +262,11 @@ def _sendDividendsFundMoves( bot, userId, reportName, token="dummy" ):
         )
 
         for symbol in dividendsObj:
-            for date in dividendsDict[symbol]:
+            for date in dividendsObj[symbol]:
 
-                botMessage = ""
-                for item in dividendsDict[symbol][date]:
-                    botMessage = botMessage + "*" + item + "*: " + dividendsDict[symbol][date][item] + " \n"
+                botMessage = "*SYMBOL*: " + symbol + " \n"
+                for item in dividendsObj[symbol][date]:
+                    botMessage = botMessage + "*" + item + "*: " + dividendsObj[symbol][date][item] + " \n"
 
                 bot.send_message(
                     chat_id=userId,
