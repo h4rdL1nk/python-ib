@@ -264,9 +264,9 @@ def _sendDividendsFundMoves( bot, userId, reportName, token="dummy" ):
         for symbol in dividendsObj:
             for date in dividendsObj[symbol]:
 
-                botMessage = "*SYMBOL*: " + symbol + " \n"
+                botMessage = "*SYMBOL*: " + symbol + " \n*Date*: " + date + " \n"
                 for item in dividendsObj[symbol][date]:
-                    botMessage = botMessage + "*" + item + "*: " + dividendsObj[symbol][date][item] + " \n"
+                    botMessage = botMessage + "*" + item + "*: " + str(dividendsObj[symbol][date][item]) + " \n"
 
                 bot.send_message(
                     chat_id=userId,

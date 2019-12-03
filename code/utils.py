@@ -116,18 +116,24 @@ def csvFundsToDividends( csvString ):
                     if chargeDate not in dividendsDict[symbol]: dividendsDict[symbol][chargeDate] = {}
                     if currency not in dividendsDict[symbol][chargeDate]: dividendsDict[symbol][chargeDate]['Currency'] = currency
 
-                    amount_per_share = descMatches.group(3)
-                    shares = str((float(amount) / float(amount_per_share)))
+                    amount_per_share = float(descMatches.group(3))
+                    shares = round( (float(amount) / float(amount_per_share) ), 2 )
 
-                    dividendsDict[symbol][chargeDate]['NetAmount'] = amount
+                    dividendsDict[symbol][chargeDate]['GrossAmount'] = float(amount)
                     dividendsDict[symbol][chargeDate]['Shares'] = shares
+
+                    if 'Tax' in dividendsDict[symbol][chargeDate]: 
+                        dividendsDict[symbol][chargeDate]['NetAmount'] = float(amount) - ( float(dividendsDict[symbol][chargeDate]['Tax']) * -1 )
 
                 if row[headers.index('ActivityCode')] == 'FRTAX':
                     if symbol not in dividendsDict: dividendsDict[symbol] = {}
                     if chargeDate not in dividendsDict[symbol]: dividendsDict[symbol][chargeDate] = {}
                     if currency not in dividendsDict[symbol][chargeDate]: dividendsDict[symbol][chargeDate]['Currency'] = currency
 
-                    dividendsDict[symbol][chargeDate]['Tax'] = amount
+                    dividendsDict[symbol][chargeDate]['Tax'] = ( float(amount) * -1 )
+
+                    if 'GrossAmount' in dividendsDict[symbol][chargeDate]:
+                        dividendsDict[symbol][chargeDate]['NetAmount'] = round( float(dividendsDict[symbol][chargeDate]['GrossAmount']) - ( float(amount) * -1 ), 2 )
 
         row_count = row_count + 1
     
