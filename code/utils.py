@@ -109,7 +109,7 @@ def csvFundsToDividends( csvString ):
                 amount = row[headers.index('Amount')]
                 currency = row[headers.index('CurrencyPrimary')]
 
-                descMatches = re.match("(.*)\(([A-Z0-9]+)\).*([0-9]+.[0-9]+)",desc)
+                descMatches = re.match("(.*)\(([A-Z0-9]+)\).* ([0-9]+.[0-9]+).*\((.*)\)",desc)
 
                 if row[headers.index('ActivityCode')] == 'DIV':
                     if symbol not in dividendsDict: dividendsDict[symbol] = {}
@@ -117,13 +117,16 @@ def csvFundsToDividends( csvString ):
                     if currency not in dividendsDict[symbol][chargeDate]: dividendsDict[symbol][chargeDate]['Currency'] = currency
 
                     amount_per_share = float(descMatches.group(3))
+                    dividend_type = descMatches.group(4)
                     shares = round( (float(amount) / float(amount_per_share) ), 2 )
 
                     dividendsDict[symbol][chargeDate]['GrossAmount'] = float(amount)
                     dividendsDict[symbol][chargeDate]['Shares'] = shares
 
+                    dividendsDict[symbol][chargeDate]['Type'] = dividend_type
+
                     if 'Tax' in dividendsDict[symbol][chargeDate]: 
-                        dividendsDict[symbol][chargeDate]['NetAmount'] = float(amount) - ( float(dividendsDict[symbol][chargeDate]['Tax']) * -1 )
+                        dividendsDict[symbol][chargeDate]['NetAmount'] = round( float(amount) - ( float(dividendsDict[symbol][chargeDate]['Tax']) * -1 ), 2 )
 
                 if row[headers.index('ActivityCode')] == 'FRTAX':
                     if symbol not in dividendsDict: dividendsDict[symbol] = {}
