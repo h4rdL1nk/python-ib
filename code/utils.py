@@ -118,7 +118,7 @@ def csvFundsToDividends( csvString ):
 
                     amount_per_share = float(descMatches.group(3))
                     dividend_type = descMatches.group(4)
-                    shares = round( (float(amount) / float(amount_per_share) ), 2 )
+                    shares = round( (float(amount) / float(amount_per_share) ), 1 )
 
                     dividendsDict[symbol][chargeDate]['GrossAmount'] = float(amount)
                     dividendsDict[symbol][chargeDate]['Shares'] = shares
