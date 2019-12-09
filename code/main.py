@@ -118,13 +118,13 @@ def _sendUpdatesHourly( bot, userId, reports, token="dummy" ):
             if (open('/tmp/alert-bot.stat','r').read()) != todayHourStr:
 
                 launchHourly = True
-                logging.info( "Updating state file" )
+                logging.debug( "Updating state file" )
                 open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
         else:
 
             launchHourly = True
-            logging.info( "Creating state file" )
+            logging.debug( "Creating state file" )
             open('/tmp/alert-bot.stat','w').write(todayHourStr)
 
 
