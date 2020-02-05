@@ -10,6 +10,7 @@ from telegram.ext import ( Updater, CommandHandler, MessageHandler, Filters, Cal
 
 import ib
 import utils
+import stock
 
 
 if 'BOT_LOG_LEVEL' in os.environ and os.environ['BOT_LOG_LEVEL'] in ['DEBUG','INFO','WARNING','ERROR','CRITICAL']:
@@ -80,6 +81,7 @@ def main():
     # Add handlers
     dispatcher.add_handler( CommandHandler( 'start', _cmdStart, pass_args=True ) )
     dispatcher.add_handler( CommandHandler( 'list_reports', _cmdListReports ) )
+    dispatcher.add_handler( CommandHandler( 'stock', _cmdStockInfo ) )
     #dispatcher.add_handler( CommandHandler( 'get_report', _sendReportImg, pass_args=True ) )
 
     updater.start_polling()
@@ -94,6 +96,11 @@ def _cmdStart( bot, update, args ):
     user_says = " ".join(args)
     bot.send_message( chat_id=update.message.chat.id, text="User said: " + user_says )
 
+def _cmdStockInfo( bot, update, args ):
+
+    ticker = " ".join(args)
+    tickerPrice = stock.getPrice( ticker )
+    bot.send_message( chat_id=update.message.chat.id, text="Stock price: " + str(tickerPrice) )
 
 def _cmdListReports( bot: Bot, update: Update ):
    

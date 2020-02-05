@@ -3,3 +3,4 @@ PrettyTable
 python-telegram-bot
 logging
 shell
+yfinance

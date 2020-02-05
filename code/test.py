@@ -4,6 +4,7 @@ from sys import argv
 import csv
 import re
 import json
+import stock
 
 def test( token ):
 
@@ -14,11 +15,13 @@ def test( token ):
 
     print(json.dumps(fundsObject))
 
+def testStock( symbol ):
+    print(stock.getPrice( symbol ))
 
 
 if __name__ == "__main__":
     
     if len(argv) > 0:
-        secret_token = argv[1]
+        tick = argv[1]
     
-    test(secret_token)
+    testStock(tick)
