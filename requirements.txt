@@ -1,3 +1,6 @@
+requests
+PrettyTable
 python-telegram-bot
 shell
 yfinance
+lxml
