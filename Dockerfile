@@ -4,7 +4,7 @@ ADD requirements.txt .
 
 RUN apk add python3 python3-dev gcc musl-dev libffi-dev openssl-dev libxml2-dev xmlsec-dev build-base
 
-RUN pip3 install --user -r requirements.txt
+RUN pip3 install --no-warn-script-location --user -r requirements.txt
 
 
 FROM alpine:3.11
