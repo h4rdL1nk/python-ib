@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ib-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ib-bot
+  template:
+    metadata:
+      labels:
+        app: ib-bot
+    spec:
+      containers:
+      - name: ib-bot
+        image: h4rdl1nk/python-ib-bot:20200207-arm
+        env:
+          - name: TELEGRAM_BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: ib-bot
+                key: TELEGRAM_BOT_TOKEN
+          - name: TELEGRAM_USER_ID
+            valueFrom:
+              secretKeyRef:
+                name: ib-bot
+                key: TELEGRAM_USER_ID
+          - name: IB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: ib-bot
+                key: IB_TOKEN
