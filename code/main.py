@@ -19,10 +19,9 @@ else:
     logLevel = 'INFO'
 
 logging.basicConfig(
-    filename='/tmp/alert-bot.log', 
     level=logging.getLevelName(logLevel),
-    filemode='w', 
-    format='%(asctime)s - [%(name)s][%(levelname)s] - %(message)s'
+    format='%(asctime)s - [%(name)s][%(levelname)s] - %(message)s',
+    stream=sys.stdout
 )
 
 reportDict = {
