@@ -1,11 +1,15 @@
 import yfinance as yf
 import json
 
-def getPrice( symbol ):
-    ticker = yf.Ticker(symbol)
-    ticker_info = json.loads(json.dumps(ticker.info))
+def getInfo( symbol, attribute="dummy" ):
 
-    return ticker_info["ask"]
+  ticker = yf.Ticker(symbol)
+  ticker_info = json.loads(json.dumps(ticker.info))
+
+  if attribute == "dummy":
+    return ticker_info
+  else:
+    return ticker_info[attribute]
 
 
 def getIsin( symbol ):

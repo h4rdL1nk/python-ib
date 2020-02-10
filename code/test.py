@@ -16,7 +16,8 @@ def test( token ):
     print(json.dumps(fundsObject))
 
 def testStock( symbol ):
-    print(stock.getPrice( symbol ))
+
+  print(stock.getInfo( symbol ,"dividendRate"))
 
 
 if __name__ == "__main__":
@@ -24,4 +25,4 @@ if __name__ == "__main__":
     if len(argv) > 0:
         tick = argv[1]
     
-    testStock(tick)
+    print(testStock(tick))
