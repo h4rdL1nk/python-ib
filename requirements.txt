@@ -5,3 +5,4 @@ shell
 yfinance
 lxml
 html5lib
+numpy
